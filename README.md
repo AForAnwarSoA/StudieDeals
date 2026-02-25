@@ -1,0 +1,2 @@
+# StudieDeals
+Lidt løjer
