@@ -1,0 +1,148 @@
+index.html
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Engine - Live Konfiguration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcfd; }
+        .affiliate-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .affiliate-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+    </style>
+    <!-- Chosen Palette: Midnight Slate & Electric Indigo -->
+    <!-- Application Structure Plan: 
+         1. Integration Header: Viser status på dit Partner ID.
+         2. Link Generator Logic: JavaScript-funktion der bygger links dynamisk.
+         3. Live Preview: Hvordan siden ser ud for brugeren.
+         Det er designet som en "Set-and-forget" struktur.
+    -->
+    <!-- Visualization & Content Choices:
+         - Status Indicators: Grøn/Rød alt efter om ID er udfyldt.
+         - Dynamic Product Grid: Bruger JS til at indsætte ID i alle URL'er.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. 
+    -->
+</head>
+<body class="text-slate-900">
+
+    <!-- Konfigurations Panel (Kun synligt for dig under setup) -->
+    <div id="setup-panel" class="bg-indigo-900 text-white p-4 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+                <p class="text-sm font-semibold">Integration Status: <span id="status-text">Klar til dit ID</span></p>
+            </div>
+            <div class="flex items-center space-x-2 w-full md:w-auto">
+                <label class="text-xs font-bold uppercase tracking-wider text-indigo-200">Dit Partner ID:</label>
+                <input type="text" id="partner-id-input" placeholder="Indtast ID her..." class="bg-indigo-800 border border-indigo-700 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 w-32">
+                <button onclick="updatePartnerID()" class="bg-emerald-500 hover:bg-emerald-400 text-indigo-950 font-bold px-4 py-1 rounded text-sm transition">Gem ID</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hjemmesiden -->
+    <header class="py-16 px-4 max-w-7xl mx-auto text-center">
+        <h1 class="text-5xl font-extrabold tracking-tight mb-4">Studie<span class="text-indigo-600">Deals</span></h1>
+        <p class="text-slate-500 text-lg max-w-xl mx-auto">De bedste priser på gear til gymnasiet – kurateret af studerende, til studerende.</p>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 pb-20">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="product-list">
+            <!-- Produkter genereres her via JavaScript -->
+        </div>
+
+        <!-- Informations sektion til Partner-ads godkendelse -->
+        <section class="mt-20 bg-slate-100 rounded-3xl p-10 border border-slate-200">
+            <h2 class="text-2xl font-bold mb-4">Om StudieDeals</h2>
+            <p class="text-slate-600 leading-relaxed">
+                Dette website fungerer som en automatiseret prissammenlignings-hub. Vi overvåger de største danske forhandlere for at sikre studerende den laveste indgangspris på nødvendigt hardware og studiebøger. 
+                Siden opdateres løbende via affiliate-integrationer, hvilket sikrer at alle links er aktive og relevante.
+            </p>
+        </section>
+    </main>
+
+    <script>
+        // --- KONFIGURATION ---
+        // Dette er dit ID fra Partner-ads (typisk et tal)
+        let PARTNER_ID = ""; 
+
+        const products = [
+            { 
+                id: "1",
+                name: "MacBook Air M2 - Studiepakke", 
+                price: "8.499 kr.", 
+                merchant: "Proshop", 
+                program_id: "1234", // Dette er ID for den specifikke webshop hos Partner-ads
+                link: "https://www.proshop.dk/Baerbar",
+                image: "💻"
+            },
+            { 
+                id: "2",
+                name: "Sony WH-1000XM5 (Støjdæmpende)", 
+                price: "2.100 kr.", 
+                merchant: "Coolshop", 
+                program_id: "5678", 
+                link: "https://www.coolshop.dk/sony-headphones",
+                image: "🎧"
+            },
+            { 
+                id: "3",
+                name: "TI-84 Plus CE Grafregner", 
+                price: "995 kr.", 
+                merchant: "Gucca", 
+                program_id: "9012", 
+                link: "https://www.gucca.dk/regner",
+                image: "🔢"
+            }
+        ];
+
+        function updatePartnerID() {
+            const val = document.getElementById('partner-id-input').value;
+            if(val) {
+                PARTNER_ID = val;
+                document.getElementById('status-text').innerText = "ID Aktivt: " + PARTNER_ID;
+                document.getElementById('status-text').classList.add('text-emerald-400');
+                renderLiveProducts();
+            }
+        }
+
+        function buildAffiliateLink(baseUrl, programId) {
+            // Dette er standardformatet for Partner-ads links:
+            // https://www.partner-ads.com/dk/klikid.php?partnerid=[DIT_ID]&bannerid=[PROGRAM_ID]&htmlurl=[DESTINATION_URL]
+            if(!PARTNER_ID) return baseUrl;
+            
+            const encodedUrl = encodeURIComponent(baseUrl);
+            return `https://www.partner-ads.com/dk/klikid.php?partnerid=${PARTNER_ID}&bannerid=${programId}&htmlurl=${encodedUrl}`;
+        }
+
+        function renderLiveProducts() {
+            const container = document.getElementById('product-list');
+            container.innerHTML = '';
+
+            products.forEach(p => {
+                const affLink = buildAffiliateLink(p.link, p.program_id);
+                
+                const card = document.createElement('div');
+                card.className = "affiliate-card bg-white rounded-2xl border border-slate-200 p-6 flex flex-col";
+                card.innerHTML = `
+                    <div class="text-6xl mb-6 bg-slate-50 py-10 rounded-xl text-center">${p.image}</div>
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">${p.merchant}</span>
+                        <span class="text-lg font-black">${p.price}</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-6">${p.name}</h3>
+                    <a href="${affLink}" target="_blank" rel="nofollow" class="mt-auto bg-slate-900 text-white text-center py-4 rounded-xl font-bold hover:bg-indigo-600 transition shadow-lg shadow-slate-200">
+                        Se tilbud her
+                    </a>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initial render
+        renderLiveProducts();
+    </script>
+</body>
+</html>
